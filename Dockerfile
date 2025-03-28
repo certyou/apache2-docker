@@ -1,16 +1,10 @@
-FROM ubuntu:latest
+FROM python
 
 
 #================================ Python ================================
-# local environnement
-COPY .venv/ /.venv/
 # script
-COPY app/ /app/
+ADD /app/hello_world.py hello_world.py
+ADD /app/client_http/client.py client.py
 
-#CMD  ["client.py", "127.0.0.1", "80"]
-CMD ["hello_world.py"]
-
-# apache
-WORKDIR /
-
-#RUN sudo apt install apache2
+CMD  ["python3", "client.py", "127.0.0.1", "80"]
+#CMD ["python3", "./hello_world.py"]
