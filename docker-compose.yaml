@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  apache:
+    image: httpd:latest
+    container_name: apache-server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./logs:/usr/local/apache2/logs
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+    command: ["httpd", "-D", "FOREGROUND", "-c", "ServerName localhost"]
+
+  analyzer:
+    build:
+      context: ./src
+    container_name: log-analyzer
+    volumes:
+      - ./logs:/logs
+    depends_on:
+      - apache
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
