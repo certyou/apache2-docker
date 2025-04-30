@@ -15,15 +15,13 @@ def parse_datetime(dt_str):
 
 # Function to round down to nearest 5 minutes
 def round_down_to_5min(dt):
-    return dt - timedelta(minutes=dt.minute % 5,
-                          seconds=dt.second,
-                          microseconds=dt.microsecond)
+    return dt - timedelta(minutes=dt.minute % 5, seconds=dt.second, microseconds=dt.microsecond)
 
 # Initialize counters
 bins = defaultdict(lambda: {"requests": 0, "bytes": 0})
 
 # Read and parse the log file
-with open("access_log", "r") as f:
+with open("/Users/ewen/MyProg/PEI2/projetS2/python_script/src/sample_access_log", "r") as f:
     for line in f:
         match = LOG_PATTERN.search(line)
         if match:
@@ -32,7 +30,7 @@ with open("access_log", "r") as f:
                 dt = parse_datetime(dt_str)
                 bin_time = round_down_to_5min(dt)
                 bins[bin_time]["requests"] += 1
-                bins[bin_time]["bytes"] += int(byte_str) if byte_str != '-' else 0
+                bins[bin_time]["bytes"] += int(byte_str)
             except Exception as e:
                 print(f"Error parsing line: {line.strip()} ({e})")
 
@@ -41,28 +39,33 @@ sorted_bins = sorted(bins.items())
 
 # Extract data
 times = [time for time, _ in sorted_bins]
-requests = [data["requests"] for _, data in sorted_bins]
+requests = [data["requests"]//60*5 for _, data in sorted_bins]
 bytes_transferred = [data["bytes"] for _, data in sorted_bins]
 
 # Plotting
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10), sharex=True)
 
 # Plot requests
-ax1.plot(times, requests, marker='o', linestyle='-', color='blue')
+ax1.bar(times, requests, color='blue', width=0.005)
 ax1.set_ylabel("Number of Requests")
 ax1.set_title("Requests per 5-Minute Bin")
-ax1.grid(True)
+ax1.grid(axis='y', linestyle='--', alpha=0.7)
+ax1.legend(["Requests"], loc="upper left")
 
 # Plot bytes
-ax2.plot(times, bytes_transferred, marker='o', linestyle='-', color='green')
+ax2.bar(times, bytes_transferred, color='green', width=0.005)
 ax2.set_ylabel("Bytes Transferred")
 ax2.set_title("Bytes Transferred per 5-Minute Bin")
 ax2.set_xlabel("Time")
-ax2.grid(True)
+ax2.grid(axis='y', linestyle='--', alpha=0.7)
+ax2.legend(["Bytes Transferred"], loc="upper left")
 
 # Improve x-axis formatting
 ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-fig.autofmt_xdate()
+ax2.xaxis.set_major_locator(mdates.HourLocator(interval=1))  # Set tick interval to 1 hour
+fig.autofmt_xdate(rotation=45)  # Rotate x-axis labels for better readability
 
-plt.tight_layout()
+# Save and show the plot
+fig.tight_layout()
+fig.savefig("bytes_count_improved.png")
 plt.show()

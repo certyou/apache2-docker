@@ -1,10 +1,15 @@
-FROM python
+# Use a lightweight Python image
+FROM python:3.11-slim
 
+# Set working directory
+WORKDIR /app
 
-#================================ Python ================================
-WORKDIR /src
-ADD analyser.py analyser.py
-ADD client_http/client.py client.py
+# Copy files
+COPY bytesOverTime.py ./
+COPY requirements.txt ./
 
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python3", "./analyser.py"]
+# Command to run script
+CMD ["python", "bytesOverTime.py"]
